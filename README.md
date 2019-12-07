@@ -29,7 +29,7 @@ The following crontab will run the R script every 30 minutes -
 
 ### Documentation of the project
 
-You can find a live version at my website by clicking ![HERE](http://lukelabenski.com/behavior).  Otherwise, you can view some screen shots and a short video of the project below.
+You can find a live version at my website by clicking http://lukelabenski.com/behavior.  Otherwise, you can view some screen shots and a short video of the project below.
 
 ![00:00](https://i.imgur.com/61vCKRd.png)
 
