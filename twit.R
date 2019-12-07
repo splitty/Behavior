@@ -1,3 +1,4 @@
+#Makes sure all connections are closed so we don't have any conflicting connections to the API services
 closeAllConnections()
 rm(list=ls())
 
@@ -6,18 +7,21 @@ if (!require(ROAuth)) {install.packages("ROAuth")}
 library(twitteR)
 library(ROAuth)
 
-
-consumer_key = "5DIYmr1C6aWmIW8BCxGhsmse1"
-consumer_secret = "WFL3YGwD54kFQBmf56FcpdEPqbjtf5RFb3MGLkN5SpW9WZ1UDq"
-access_token = "1055161326027333633-EVFxDX9uNmcKzL9cReOEOVvOOJCcJN"
-access_secret = "n9KIV6UpjcsSZTCpJjqsPObMpmUx32XF4oHhBesbRJKSd"
+#Twitter dev user information
+consumer_key = "######"
+consumer_secret = "######"
+access_token = "#####"
+access_secret = "#####"
 options(httr_oauth_cache=TRUE)
 my_oauth <- setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
 
 save(my_oauth, file = "my_oauth.Rdata")
 
+#Get current world trend locations
 availableTrendLocations()
+#Get trending topics for new york city
 worldy <- getTrends(2459115)
+#top 3 trending topics
 head(worldy$name,3)
 
 #write.csv(worldy, "Worldtrends.csv")
@@ -25,9 +29,12 @@ mytime <- format(Sys.time(), "%b_%d_%H_%M_%S_%Y")
 msg <- glue::glue("Current Time is {mytime} and trending topic is {head(worldy$name, n = 3)}")
 cat(msg, file = "test.txt",sep="\n",append=TRUE)
 
+#Grab our tweets from API - note - the 1000 can be changed to whatever amount you would like
 tweets <- searchTwitter(worldy$name[1], n=1000, lang="en")
+#Obtain just the text from the tweets
 tweets.text <- sapply(tweets, function(x) x$getText())
 
+#option to obtain the other top 2 trending topics                     
 #tweets <- searchTwitter(worldy$name[2], n=1000, lang="en")
 #tweets.text <- sapply(tweets, function(x) x$getText())
 
@@ -62,10 +69,11 @@ library(tm)
 myCorpus <- Corpus(VectorSource(tweets.text))
 myCorpus <- tm_map(myCorpus, function(x) removeWords(x,stopwords()))
 
+ #grab current time for saving reaasons                  
 mytime <- format(Sys.time(), "%b_%d_%H_%M_%S_%Y")
 myfile <- file.path(getwd(), paste(mytime,".png"))
 
-
+#create the wordcloud and save it in our current working directory
 if(!require(wordcloud)) {install.packages("wordcloud")}
 library(wordcloud)
 getwd()
@@ -86,7 +94,9 @@ library(ggpubr)
 library(tidyverse)
 library(textdata)
 
+#get tweets again so we can have fresh data to work with                   
 subtweets <- searchTwitter(worldy$name[1], n=1000, lang="en")
+#create a dataframe from those tweets                   
 dataTweets <- do.call("rbind", lapply(subtweets,as.data.frame))
 tidy_tweets <- dataTweets %>% # pipe data frame 
   select(text)%>% # select variables of interest
@@ -102,7 +112,7 @@ my_stop_words <- tibble( #construct a dataframe
   ),
   lexicon = "twitter"
 )
-
+#configure stop words and lexicon settings
 all_stop_words <- stop_words %>%
   bind_rows(my_stop_words)
 
@@ -120,19 +130,19 @@ pie_words<- nrc_words %>%
   group_by(sentiment) %>% # group by sentiment type
   tally %>% # counts number of rows
   arrange(desc(n)) 
-
+#create just the positive/negative pie chart
 pie_words_posNeg <- pie_words
 pie_words_posNeg <- pie_words_posNeg %>% filter(sentiment=="positive" | sentiment == "negative")
-
+#create the other sentiment analysis pie chart
 pie_words_Else <- pie_words
 pie_words_Else<- pie_words_Else %>% filter(sentiment !="positive")
 pie_words_Else<- pie_words_Else %>% filter(sentiment !="negative")
-
+#time for saving reasons
 mytime1 <- format(Sys.time(), "%H_%M_%S_%Y_%b_%d")
 myfile1 <- file.path(getwd(), paste(mytime1,".png"))
 getwd()
 png(myfile1, width=6, height=6, units="in", res=300)
-
+#make a positive and negative pie chart
 ggpubr::ggpie(head(pie_words_posNeg,2), "n", label = "sentiment", 
               lab.font = c(5, "bold", "white"),
               lab.pos = "in",
@@ -141,10 +151,11 @@ ggpubr::ggpie(head(pie_words_posNeg,2), "n", label = "sentiment",
               )
 
 dev.off()
-
+#time again for saving
 mytime1 <- format(Sys.time(), "%b_%d_%H_%M_%S_%Y")
 myfile1 <- file.path(getwd(), paste(mytime1,".png"))
 getwd()
+#make and save deeper sentiment analysis pie chart                   
 png(myfile1, width=6, height=6, units="in", res=300)
 head(pie_words_Else,8)
 level_order <- factor(pie_words_Else, levels = c(head(pie_words_Else)))
