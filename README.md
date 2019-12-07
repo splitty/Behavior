@@ -1,4 +1,4 @@
-# behavior
+# Behavioral Timeline
 Creating a behavioral timeline on Twitter using R and the Twitter API.
 
 ### Why?
